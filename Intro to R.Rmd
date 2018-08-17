@@ -1,0 +1,108 @@
+---
+title: "Introduction to R"
+subtitle: "Written by Gordon Custer and Linda van Diepen 2018"
+output: html_notebook
+---
+#Introduction
+For many of you this is your first experience with R (for some it may not be). The goal of this excerzie is to familaize you with the basics of R and R Studio. In the processes we hope that this tutorial will help you ovecome the anxiety that exists in the begining. First off, What is R? R is both a programing language and software environment for statsical computing and display. The benefit of R versus some other statsiical computing software packages is taht R is totally free and can be downloaded to any computer. As for R studio, R studio offeres a GUI (Graphical User Interface) with dropdown menus, and handy visualizations of key features. R does the work; R studio makes it pretty. 
+
+#Getting Started
+After opening R studio you will see 4 panes (maybe 3 meaning one is hidden and thats an easy fix).  These four panes are as follows and their locaitons are given based upon the defaults of R Studio. You can change this if you prefer an alterate set up. 
+      1. Source (Top Left). This pane contains the script you are working on.
+      2. Console (Bottom Left). This pane contains a history of the commands you have ran. You can also type directly into this pane. 
+      3. Environment (Top Right). The environment contains data which R can access at this given moment. 
+      4. The final pane (Bottom Left) contains several tabs. In this pane, you can view graphs, search for files, install pacakges (we will get to this in a minute), and even find documentation on pacakges or functions. 
+      
+#Opening a script and saving
+Any expereinced R user will tell you one of the benefits of using a program such as R is the ability to write code once and "reuse" it over and over again with slight modifications. As mentioned above, you could type directly into the console, but this would only save your work flow until you exit the window. In order to save your work for future analyses, programing into a notebook, or script is highly reccomened. For example, this R script is written in a special kind of notebook known as markdown. This format, which is different from an R script, allows programers to incldue text, figures, headings, and code all in the same place. In addition, this notebook can be rendered in a .html format so anyone with a web-browser can access it. On the other hand the simpliest way to keep a copy of your program or code is to use the R-script option. There are several other options as well but for the sake of simplicity we will only look at these two. For your first task, lets further explore the two options discussed above. 
+
+Excersize: Navigate to the "File" dropdown menue. Click "New File", and open both an "R Script" and an "R Notebook". What do you notice about initial appeacnces. Run the default script in the R Notebook, then run the same scipt in the basic R Script. Notice where the figure appears. 
+
+Now, lets see what a co-worker would see if you supplied them a copy of your R Notebook in .html format. On the top of the "Source" pane, there is a small button "R Preview". Make sure you run the plot(cars) command first. Then click this preview option. The preview option will prompt you to save this scipt. Save it in your folder on the Desktop. It is good pratice to save scripts with a desciptive name so you can find it easily at a later date. Once, the notebook has rendered, you will see the plot(cars) graph embeded in the document. In addition you can show or hide the code which was used to produce this graph. While this example is very simple, the same holds true for more complex analysis. 
+
+#Familiarizing yourself with your working environment. 
+Your working environment and working directory are extremely important when you are wanting to read in data or save an analysis. Imagine you are in your office; this is your working directory. You can write on a peice of paper and save it on your desk. You can also find notes whihc you left yourself. You are able to easily access anything in your office. Your neighbors office, while located in the same halway, requires you to back out of your office and then enter his. This analogy holds true for finding files on your computer too. Your workign environment will allow you to access files quickly and to write copies of your analysis or environent easily. Like you can walk into your co-workers office, you can change your working directory ot access a different set of files. 
+
+As an example, lets download the following file and save it in your folder on the Desktop. Insert Excel file link here. Here we want to read in the file and see what happens when we specify the wrong location. Up until now all text has been written outside of a block of code. In order to add comments, which is a really good, I mean really good, habit to get into you only need to add a "#" before any line you do not wish R to interpret. In the code below you can see certian lines are not interpreted even if you ran the block as a whole. These comments will not show up in your rendered .html notebook either. You have to open the notebook in R studio to access these comments. 
+
+Here we have our first block of code, also refered to as a chunk of code. Anything in here can be ran by clicking the green play button in the top right corner of the block. In addition, we can # out this block by placing a "#" before the r in the ```{r}. The keyboard shortcut for inserting a new block of code is "Command" + "Option" + "i".
+
+```{r}
+#Lets see where we are right now (our current wokring directory)
+getwd()
+#Now lets say we want to change our working directory to the Mownloads folder on your machine. 
+setwd("/Users/gordoncuster/Downloads/")
+#In order to make sure the computer knows what its looking for use the "Tab" key. This functions as an autocomplte. If the computer is unable to autocomplte you know you have done something wrong. 
+```
+Excersize: Insert a new chunk below. Then, change the working directory to your folder on the Desktop of your machine. 
+
+Now lets try to read in our data. In order to do so, we need to make sure we are in the correct working directory and the file exists. You can do this by using the getwd() command and making sure the file exists in that location. 
+
+Below are two lines of code which read in the dataset. However, there is one slight difference. What is the differecne and what does it do? What happens if you forget to include the "" around the file name? What happens if you change your working directory back to the "Downloads" file and try to run the same script? 
+```{r}
+read.csv("Pima.csv")
+Pima<-read.csv("Pima.csv")
+
+Pima<-read.csv(Pima.csv)
+
+setwd("/Users/gordoncuster/Downloads/")
+Pima<-read.csv("Pima.csv")
+
+```
+
+R will yell at you. Get used to it. It happens all the time. Learn to embrace it and you will be well on your way to solving any problem R can throw at you. 
+
+Tip: Help pages. Under the Help tab, type "read.csv". This page will tell you everyting that the function read.csv requires and can do. Become familiar with these pages and you can avoid many head aches. 
+
+Now that our data is read in, lets see what it looks like. We can do this several ways. Below are several ways to look at the data. What are some of the key differences? 
+
+```{r}
+Pima
+str(Pima)
+summary(Pima)
+plot(Pima)
+plot(Pima$diastolic)
+hist(Pima$diastolic)
+```
+In this section we also introduce an easy way to pull out a single column from a dataset. The "$" operater allow you to select a single column. Suppose you wanted to select several columns. Lets say coulmns 1:5. What would you do? Let's use this oppotrunity to try googling your problem. This is another useful skill to master. If you can put your problem in the correct terms, it is very likely someone else has faced the same difficulity and will be able to help. 
+Excersize: Search google for the answer to this problem. I would say start googling something like "Program R select multiple columns" or "subset dataframe to only include certian columns Program R". As you can see from these two suggesetions, the exact verbage isnt that important. 
+
+```{r}
+subset_Pima<-Pima[,c(1:5)]
+```
+Square brackets work such that numbers before the comma indicate rows. By leaving this blank we are telling the program we want all rows. Numbers occuring after the comma indicate columns. Above, we are saying we want only columns 1:5. The c() concatonates this selection. We could also include columns that are not next to each other by writing our brackets to look something like this [,c(1:4, 7)]. This would only select columns 1, 2, 3, 4, and 7. 
+
+Another way to do this would be to make a vector of the column names you wish to keep. Lets use the following block to walk through these steps. 
+```{r}
+unique(colnames(Pima))
+#Let's only pull out the columns "glucose", "diabetes", and "bmi". In order to do so lets make a vector containing these values.
+columns_to_keep<-c("glucose", "diabetes","bmi")
+subset_Pima<-Pima[,colnames(Pima) %in% columns_to_keep]
+```
+Can you interpret what is going on in the last line of code? Try to put it into plain english. 
+
+
+Excersize: Insert a new chunk and pull only the first two rows of the columns "age" and "triceps".
+
+Ok now that the simple data exploration phase is over, let's quickly run over how to install a package and laod it in your current session. Smiply put, a pacakge is a colleciton of programs which might not be included in base R. Installation of packages allows for users to access functions and run analyses without having to write all of the code themselves. The dataset used above acutally comes indluded in the "Faraway" package. In order to load a package, you must first install it. Below you will find two lines wich help you install any given pacakge. Notice the quotations. Much like above, in the read.csv block, the function will not work if you do not have the proper syntax. 
+
+```{r}
+install.packages("faraway")
+require(faraway)
+#this lets you see what packages you have loaded at the moment
+(.packages())
+```
+
+While this package loaded realitivy quickly some packages take hours to sucessfully download and install. One such package, DADA2, which we will use later, takes several hours and requires many dependcies to run sucessfully. At the end of this excercise we will install this so it is ready for us to being using at the begining of next class.  
+
+Exercise. Find a package online that interests you, install it and load it. Explore some of the functions included in the package. 
+
+As I mentioned earlier, you can always google your problem. If you ran "install.packages("DADA2")" nothing would install. That is becasue the DADA2 package isnt available on the CRAN repository. This pacakge is available through bioconductor. Many packages which are extremly useful in the anlsyis of high throughput sequence data are found on bioconductor. Below is a link to the installation guide for DADA2. Start this installaiton today. 
+
+https://benjjneb.github.io/dada2/dada-installation.html
+
+We will start working with DADA2 next week. Before you start using any program, such as DADA2, it is best to familarize yourself with the assocated literature. https://benjjneb.github.io/dada2/index.html will direct you to the DADA2 github page and you can find publications and other information pertaining to DADA2. Please look over this page and come with any questions you may have. 
+
+Citations and Resources:
+1: https://www.r-project.org/ 
+2: https://benjjneb.github.io/dada2/index.html
