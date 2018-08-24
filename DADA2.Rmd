@@ -1,21 +1,20 @@
 ---
 title: "DADA2 for high throughput sequence processing"
-subtitle: "Written by Gordon Custer and Linda van Diepen 2018"
+subtitle: "Written by Gordon Custer 2018"
 output: html_notebook
 ---
 
-Last week we began the installation process for DADA2. Whats interesting and revolutionary about DADA2 is the fact that sequences are gruped into exact sequence variants (ESV) as opposed to grouped at some level of simlarity (as was the case with the Sanger sequencing data). Grouping of taxa at a predifined level of similarity potentially masks the stucture of the data and prevents researchers from uncovering trends. By utilziing ESVs we are able to know true abundances of individuals and avoid lumping of potentially distinct taxa. 
+Last week we began the installation process for DADA2. What is interesting and revolutionary about DADA2 is the fact that sequences are grouped into exact sequence variants (ESV) as opposed to grouped at some level of simlarity as was the norm prior to the development of DADA2 and some other more recent pipelines. Grouping of taxa at a predifined level of similarity potentially hides the underlying stucture of the data and prevents researchers from uncovering trends. By utilziing ESVs we are able to know true abundances of individuals and avoid lumping of potentially distinct taxa. This allows researchers to examine their data more throurghly.  
 
-Lets make sure our installation of DADA2 was sucessful. 
-Excersise: Load the DADA2 pacakge and view the help page. You can do this in a new chunk of code or in the console. If you do it in the consle however, it will not be saved for next time you wish to load the package. 
+Ok first let's make sure our installation of DADA2 was sucessful. 
+Excersise: Load the DADA2 pacakge and view the help page. You can do this in a new chunk of code or in the console. If you do it in the consle however, it will not be saved for next time you wish to load the package. I reccomend putting it in the top of your script.
 
 DADA2 offeres a great tutorial. You shoulf familiarize yourself with it. Much of this tutorial is borrowed from theirs. The link to this can be found under citation 3. 
 
+##Overview of DADA2 workflow
+As mentioned before, DADA2 is unique and a better option than some of the other bioinformatic pipelines due to the implementation of the DADA error learning algorith. This algorithm infers whether or not individual basepairs are a sequencing error or a tue biological variant. In the simplist terms, this is accompished by pooling all samples and looking for sequences which occur across the entire experiemnt. If a sequence only occurs once throughout the entire experiment then the changes of it being a true biological variant are lower than if it were observed more times. This "magic" happens in step 3- "Infer sample composition". 
 
-##Overview of workflow
-As mentioned before, DADA2 is unique and a better option than some of the other bioinformatic pipelines due to the implementation of the DADA error learning algorith. This algorithm infers whether or not a basepair is a sequencing error or a tue biological variant. In simple terms, this is accompished by pooling all samples and looking for sequences which occur across the entire experiemnt. This is accomplished in step 3- "Infer sample composition". 
-
-Below are the main steps for the processing of high throughput sequence data. Each number has a more detailed section below. 
+Below are the main steps for the processing of high throughput sequence data. Each number has a more detailed section below and is accompined by code. 
 
 1. Filter and Trim: fastqFilter() or fastqPairedFilter()
 2. Dereplicate: derepFastq()
@@ -23,15 +22,20 @@ Below are the main steps for the processing of high throughput sequence data. Ea
 4. Merge paired reads: mergePairs()
 5. Make sequence table: makeSequenceTable()
 6. Remove chimeras: isBimeraDenovo() or removeBimeraDenovo()
-The end product will be a sequence variant table and taxonomy table which can be imported into Phyloseq for further downstream analsyis. 
+
+The end product will be a sequence variant table and taxonomy table which can be imported into Phyloseq for further downstream analsyis (in the next tutorial). 
 
 ##Getting started
-Dada2 assumes the following has been addressed prior to starting the workflow.
-1.Samples have been demultiplexed. This means that the reads have been split into individual files. The sequencing faclility often does this for you. If your samples have not been demultiplexed, commands such as split_libraries_fastq.py > split_sequence_file_on_sample_ids.py exist which can do the heavy lifitng for you. These exist in QIIME (another bioinformatics pipeline).
-2. Non-biological nucleotides have been removed. This means primers, adaptors, linkers, etc. have been removed from the reads, leaving us with the biologically relevant portion.
-3. And finally, if we are working with paired end data, the forward and reverse files contain matching reads. 
+Dada2 assumes the following has been addressed prior to starting the workflow:
 
-Once we know this is the case we can proceede with the DADA2 pipleline for processing samples. First we want to check which version of DADA2 we have installed. This is important for other researchers who want to duplicate our efforts. It is good practice to have an excel workbook and to record all of this information there. I will tell you other times you will want to record information in this excel workbook.
+1. Samples have been demultiplexed. This means that the reads have been split into individual .fastq files. The sequencing faclility often does this for you. If your samples have not been demultiplexed, commands such as split_libraries_fastq.py > split_sequence_file_on_sample_ids.py exist and can do the heavy lifitng for you. These exist in QIIME (another bioinformatics pipeline). If you need to use these commands the QIIME help pages are extremely useful. 
+
+2. Non-biological nucleotides have been removed. This means primers, adaptors, linkers, etc. have been removed from the reads, leaving us with the biologically relevant portion. Programs such as "trimmomatic" can be used for this. In many cases this step has been done or you. 
+
+3. And finally, if we are working with paired end data, the forward and reverse files contain matching reads. That is if sample 1 has a forward read file it must also have a reverse reads file. 
+
+After we have confirmed that our reads satisfy the three prerequisites, we can proceede with the DADA2 pipleline for processing samples. First, we want to check which version of DADA2 we have installed. This is important for other researchers who want to duplicate our efforts. It is good practice to have an excel workbook and to record all of this information there. I will tell you other times you will want to record information in this excel workbook.
+
 ```{r}
 packageVersion("dada2")
 ```
@@ -152,9 +156,7 @@ library(DECIPHER)
 seqs <- getSequences(seqtabNoC)
 names(seqs) <- seqs # This propagates to the tip labels of the tree
 alignment <- AlignSeqs(DNAStringSet(seqs), anchor=NA,verbose=FALSE)
-```
-No need to build tree
-```{r}
+
 phangAlign <- phyDat(as(alignment, "matrix"), type="DNA")
 dm <- dist.ml(phangAlign)
 treeNJ <- NJ(dm) # Note, tip order != sequence order
@@ -165,8 +167,7 @@ fitGTR <- optim.pml(fitGTR, model="GTR", optInv=TRUE, optGamma=TRUE,
 detach("package:phangorn", unload=TRUE)
 ```
 
-
-In the end, we have filtered and trimed our data, learned errors, removed non-biologically relevant variants, removed chimeras,created a sequence variant table, and assigned taxonomy. We now have all the necessary pieces, well almost, for further analysis. The next tutorial utlizes the package phyloseq for downstream analysis of our dataset. 
+In the end, we have filtered and trimed our data, learned errors, removed non-biologically relevant variants, removed chimeras,created a sequence variant table, and assigned taxonomy. We now have all the necessary pieces, well almost, for further analysis. The next tutorials utlizes the packages phyloseq and vegan for downstream analysis of our dataset. 
 
 
 Citations and Resources:
