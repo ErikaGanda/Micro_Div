@@ -1,0 +1,104 @@
+---
+title: "Intro to Vegan"
+subtitle: "Written by Gordon Custer 8/28/18"
+output: html_notebook
+---
+
+As we saw in the phyloseq tutorial some things are not offered and even if they are they may not be exactly what you want. In this turtorial we examine some of the most commonly utilized functions in the Vegan package. The vegan packages was developed by Jari Oksanen and is used for many common ecological analysis. Some of these analyses, such as ordination, we already covered in the phyloseq tutorial. However, to provide you with other options we will also look at their implementation in Vegan. 
+
+Since we have already gone over the basics of ordination in Phyloseq we will not rehash those details here. Instead we will look at an alternative way to achive the same result. In this tutorial we will also take advantage of base R's graphics. You will see how different a ggplot graphic is from the base R version of the same plot. 
+
+First lets load our data. We should be working with the same R environment we used created from the Phyloseq tutorial. It would be wise to save this as a different file so we dont mess anything up from our phyloseq analysis. 
+
+Exercise: load in your phyloseq R environment and save it under a new name. Remember to save your scripts and environments as something descriptive. Next, install and load the package 'Vegan'. 
+
+All analyses in phyloseq utilize the phyloseq object you created at the begining of the phyloseq tutorial. However, when performing anaylsis outside of phyloseq you need to deconstruct the phyloseq object. In order to do so you want to pull out the individual parts and save them as new variables. Here I address how to pull out the metadata and ESV table (called the out_table). Remember back to the "Intro to R" tutorial where we briefly mention how to examine what type of data we ahve and how to change between data structures? Well this is a perfect example of that conversion in real life analysis. 
+```{r}
+#Remember the "switch"
+ps<-ps_rhizo
+#ps<-ps_bulk
+ps_table <- as.data.frame(otu_table(ps))
+sd <- as.data.frame(as.matrix(as.data.frame(sample_data(ps))))
+```
+
+In the vegan package we use the function metaMDS. Look at the help page for the metaMDS. You will notice phyloseq also offers a function called metaMDS. This is likely because phyloseq contains many vegan functions. The nice thing about using metaMDS in phyloseq is that you have the ability to alter many of the arguments that you do not have access to in phyloseq. Here we ordinate our otu table to visuzalie community level differences. 
+
+Within the help page titled vegan::metaMDS look at the available options. What does the "k=" argument do? What about the "previous.best=T" argument? 
+```{r}
+ord<-metaMDS(ps_table, distance = "bray", k=3, trymax = 500, previous.best = T)
+```
+In the phyloseq tutorial, you were shown how to plot the ordination with the function plot_ordination(). In this chunk the most basic way to make an odination plot is used. The function plot() is included in base R. You can use it to plot many different types of data. The nice thing about this plot() function is that it will interpret what type of graph is best suited for your data. 
+
+Look at the plot made by plot(ord). Then look at the data made by plot(sd$pH). Notice the same function was used but the graphs are totally different based upon the structure of the input. This is one of the really cool features of R. 
+```{r}
+plot(ord)
+plot(sd$pH)
+```
+
+In this section we save the ordination plot as an object named fig1. Look at the help page for the ordiplot() function. What does the "type=" argument mean? We have points as the type in this funciton. Re-run the function changing the type arugment to one of the other options. Can you think of the advantages of having a figure with points instead of text? What about the other way around?
+```{r}
+fig1<-ordiplot(ord, type = "points")
+fig1
+```
+
+In order to beef up our plot we can try a couple different things. Much like the phyloseq object has other objects contained within it, fig1 has cointains objects as well. To look at what fig1 contains use the $. Remember the $ was used to pull out specific data. Press tab when your cursor is after the $ and R will provide the available options. 
+```{r}
+fig$
+```
+
+The sites object gives the location of the sites. What we are doing here is pulling this data out and saving at is a new variable. We are doing this so we can plot the locations and have slightly more control over the final plot. 
+```{r}
+NMDS1<-fig1$sites[,1]
+NMDS1
+NMDS2<-fig1$sites[,2]
+NMDS2
+```
+
+A useful feature of the Vegan package is the ability to plot environmental variables over an ordiation. These environmental variables can include thing such as pH, Moisture, C:N or could even be enzyme activities and they make inference and interpretation much easier. Below is some code which produces a graph with environmental variables laid over. One important thing to note about using R markdown is that base R graphics must be ran together in the same chunk. If you were to split this up and run the plot, the try to add the title you will get an error. 
+```{r}
+plot(NMDS1, NMDS2,cex=0.8, xlab='NMDS1', ylab='NMDS2')
+with(sd,ordiellipse(ord,Infestation_Stage_Soil,kind="se",conf=0.95))
+
+#to plot only variable with a certain p-value (p.max)
+ord.fit <- envfit(ord~Infestation_Stage_Soil , data = sd,  perm = 1000, na.rm = TRUE)
+plot(ord.fit, p.max=0.5, col="black", cex=0.8)
+title(main = 'Rhizosphere Soil Fungal Community', cex.main=2)
+
+```
+
+
+```{r}
+edaph<-MD[,c(1,9:11,23)]
+rownames(edaph)<-edaph$X
+edaph$X=NULL
+edaph_ord<-ord()
+
+##ordination and plot
+ordenz<-metaMDS(edaph, distance = "bray", k=3, trymax = 500, previous.best = T)
+plot(ordenz)
+fig1<-ordiplot(ordenz, type = "text")
+fig1
+NMDS1<-fig1$sites[,1]
+NMDS1
+NMDS2<-fig1$sites[,2]
+NMDS2
+plot(fig1$sites[,1],fig1$sites[,2],cex=0.8,xlab='NMDS1',ylab='NMDS2')
+
+
+edaph$Infestation_Stage<-substr(rownames(edaph), start = 1, stop = 1)
+###ordinations for community data
+ord.fit <- envfit(ordenz~., data = edaph, perm = 1000, na.rm = TRUE)
+ord.fit
+
+
+
+#now plot using basic plot function
+with(edaph,ordiellipse(ordenz,Infestation_Stage,,kind="se",conf=0.95))
+#to plot only variable with a certain p-value (p.max)
+plot(ord.fit, p.max=0.05, col="black", cex=0.8)
+plot(ord.fitbac, p.max=0.001, col="blue") 
+plot(ord.fitfungi, p.max=0.05, col="green")
+title(main = 'NMDS of Measured Edaphic Conditions')
+
+```
+
