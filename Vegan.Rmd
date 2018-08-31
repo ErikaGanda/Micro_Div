@@ -41,7 +41,7 @@ fig1<-ordiplot(ord, type = "points")
 fig1
 ```
 
-In order to beef up our plot we can try a couple different things. Much like the phyloseq object has other objects contained within it, fig1 has cointains objects as well. To look at what fig1 contains use the $. Remember the $ was used to pull out specific data. Press tab when your cursor is after the $ and R will provide the available options. 
+In order to beef up our plot we can try a couple different things. Much like the phyloseq object has other objects contained within it, fig1 has cointains objects as well. To look at what fig1 contains use the "$". Remember the "$" was used to pull out specific data from an object. Press tab when your cursor is after the "$" and R will provide the available options. 
 ```{r}
 fig$
 ```
@@ -54,7 +54,7 @@ NMDS2<-fig1$sites[,2]
 NMDS2
 ```
 
-A useful feature of the Vegan package is the ability to plot environmental variables over an ordiation. These environmental variables can include thing such as pH, Moisture, C:N or could even be enzyme activities and they make inference and interpretation much easier. Below is some code which produces a graph with environmental variables laid over. One important thing to note about using R markdown is that base R graphics must be ran together in the same chunk. If you were to split this up and run the plot, the try to add the title you will get an error. 
+A useful feature of the Vegan package is the ability to plot environmental vectors and factors over an ordiation. The projection of the vector in relation to the points in the ordination shows the correlation of those points with that environmental vector. These environmental variables can include thing such as pH, Moisture, C:N or could even be enzyme activities and they make inference and interpretation much easier. Below is some code which produces a graph with environmental variables laid over. One important thing to note about using R markdown is that base R graphics must be ran together in the same chunk. If you were to split this up and run the plot, the try to add the title you will get an error. 
 ```{r}
 plot(NMDS1, NMDS2,cex=0.8, xlab='NMDS1', ylab='NMDS2')
 with(sd,ordiellipse(ord,Infestation_Stage_Soil,kind="se",conf=0.95))
@@ -66,39 +66,58 @@ title(main = 'Rhizosphere Soil Fungal Community', cex.main=2)
 
 ```
 
+Lets assume you are interested in how a soil microbial community changes with respect to the edaphic conditions presenat at a site. Your hypothesis might be as edaphic conditions become increasingly different so will the microbes that are preseant. But how would you test this? Any ideas?
 
+A mantel test produces a mantel test statistics which is the correclation between two dissimiliarity matrices. Be careful to make sure you samples are in the same order for both matrices! If they are not you will not be comparing the correct samples to each other. 
+
+To run the mantel test we want to keep only samples in both dataframes. We do this because we cant compare a sample if it doesnt have a match. First we want to pull out the sample names of the two dataframes and store them in a vector
 ```{r}
-edaph<-MD[,c(1,9:11,23)]
-rownames(edaph)<-edaph$X
-edaph$X=NULL
-edaph_ord<-ord()
-
-##ordination and plot
-ordenz<-metaMDS(edaph, distance = "bray", k=3, trymax = 500, previous.best = T)
-plot(ordenz)
-fig1<-ordiplot(ordenz, type = "text")
-fig1
-NMDS1<-fig1$sites[,1]
-NMDS1
-NMDS2<-fig1$sites[,2]
-NMDS2
-plot(fig1$sites[,1],fig1$sites[,2],cex=0.8,xlab='NMDS1',ylab='NMDS2')
-
-
-edaph$Infestation_Stage<-substr(rownames(edaph), start = 1, stop = 1)
-###ordinations for community data
-ord.fit <- envfit(ordenz~., data = edaph, perm = 1000, na.rm = TRUE)
-ord.fit
-
-
-
-#now plot using basic plot function
-with(edaph,ordiellipse(ordenz,Infestation_Stage,,kind="se",conf=0.95))
-#to plot only variable with a certain p-value (p.max)
-plot(ord.fit, p.max=0.05, col="black", cex=0.8)
-plot(ord.fitbac, p.max=0.001, col="blue") 
-plot(ord.fitfungi, p.max=0.05, col="green")
-title(main = 'NMDS of Measured Edaphic Conditions')
-
+BBS<-BB$Sample
+BRS<-BR$Sample
 ```
 
+The first part here we match the two vectors of site names we made above. See how the %in% command is used. This is extremely useful when trying to match values in two vectors or dataframes.
+```{r}
+BS<-FBS[FBS %in% BBS]
+RS<-FRS[FRS %in% BRS]
+```
+
+Next once we have matched the values of our two vectors, we can then filter our dataframes to include only samples which are preseant in both. Do you notice how we accomplished this? First we pulled out all the sample names from both dataframes. Next, we matched the vectors using the %in% command to remove samples which are not presant in both. Finally, we then did the same for the entire dataframes. The end product is two dataframes with the same samples. 
+```{r}
+BB<-BB[BB$Sample %in% BS,]
+BR<-BR[BR$Sample %in% RS,]
+```
+
+Now that you think you have filtered the samples it is good practice to check to make sure it matches. True indicates a match, while false a non-match. 
+```{r}
+BB$Sample==FB$Sample
+FB$Sample==BB$Sample
+```
+Excercise: Can you think of a way to check wheter or not everything matches in a huge dataframe using the unique function?  
+
+The function parallelDist() allows for parellel processing when computing distance matrices. This is extremely important because large datasets can take hours to process if processes on a single core. However, this function is picky about the input data type. Lets look at the help page and see what it has to say. What type of data (structure) is required by parallelDist()?
+
+Something else to keep in mind is that when computing a distance matrix we will want only numeric values in our dataframe. Here we convert the object to a dataframe, create rowname based on the sample names, remove the sample names, and then convert the dataframe to the correct type, a matrix. 
+```{r}
+BB<-as.data.frame(BB)
+rownames(BB)<-BB$Sample
+BB$Sample=NULL
+BB<-as.matrix(BB)
+```
+
+Once you have your data in the correct format and you know that your samples are in the correct order you can proceed! Using the parallelDist() function we calculate a distance matrix. This is the same operation we performed in the phyloseq tutorial with the dist() function. Take a look at the object once it has finished running. What do the numbers mean? This might be a question for google!
+```{r}
+bray_BB<-parallelDist(BB, method = "bray")
+bray_BR<-parallelDist(BR, method = "bray")
+```
+
+Now for the statistics. A mantel test works by permtuting one of the matrices and comparing the correlation to the origianl. The idea is that if the null hypothesis is true and there is no relation between the two matrices then shuffling (permuting) the one matrix will produce correlations larger and smaller than the correlation between the two original distance matrices. However, if a the two distance matrices are infact correlated then permuting one will prodduce a smaller correlation many times and a larger correlation fewer times. If the "true" observed statstics is larger than 95% (0.05) of the permuated statstics then the test we can reject the null hypothesis. 
+
+Let's put this another way. If the statistic is very large and we accept the alternative hypothesis then we can say the two distance matrices are related and a change in one will result in a change in the other. An example of which would be if we saw pH change and a resulitng change in bacteria community (which we should all know is the case!). 
+
+Run this mantel test and examine the output. What conclusions can you make? 
+```{r}
+mantel(bray_FB, bray_FR, method = "pearson")
+```
+
+We can also plot the distance matrices but this becomes a bit more difficult. In order to do so, we need to extract the data from the distance matrcies reformat it and then plot. The best way to plot this type of data will be a scatter plot. Lets examine how you might go about this. 
