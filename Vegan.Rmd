@@ -121,3 +121,46 @@ mantel(bray_FB, bray_FR, method = "pearson")
 ```
 
 We can also plot the distance matrices but this becomes a bit more difficult. In order to do so, we need to extract the data from the distance matrcies reformat it and then plot. The best way to plot this type of data will be a scatter plot. Lets examine how you might go about this. 
+
+Since we already have out distance matrix lets make a switch to call them data and data2
+```{r}
+dist_data<-bray_BB
+dist_data2<-bray_BR
+```
+Next we will work on changing the distance matrices from triangular format like they are normally to a list. This can take some coercing and was found after a long evening of searching the internet. 
+
+make your distance matrix into a list of observations and distance between two points then name your columns. 
+the first two columns will be the sites the third will be the bray-curtis distance betwen the two sites this can 
+be used to call the columns if you wanted to pulll certian variables from your site names in my script i used the 
+following block to name infestation stages and then pre/post infestation
+```{r}
+data_pairs<- data.frame(t(combn(rownames(data),2)), as.numeric(dist_data))
+names(data_pairs) <- c("Site1", "Site2", "distance")
+data2_pairs<- data.frame(t(combn(rownames(data2),2)), as.numeric(dist_data2))
+names(data2_pairs) <- c("Site1", "Site2", "distance")
+```
+You will want to make sure the order of samples matches up here. 
+```{r}
+data_pairs$Site1 == data2_pairs$Site1
+data_pairs$Site2 == data2_pairs$Site2
+```
+They should all match. Do you remember how to use the unique command to check that all values are true?
+
+Next we want to combine the data frames so we have two points for each pair of values. One for the distance between bulk samples and one for the distance between the rhizosphere samples. 
+```{r}
+combined_data_frame <- data.frame(delta_bulk = data_pairs$distance, delta_rhizo = data2_pairs$distance)
+```
+
+```{r}
+p<-ggplot(data = combined_data_frame, aes(x=delta_bulk, y=delta_rhizo)) + geom_point()
+p <-p + theme(panel.background = element_rect(fill='white', colour='black'))
+p <- p + ylab("Change in Bulk Community")
+p <- p + xlab("Change in Rhizosphere Commmunity")
+p <- p + theme(plot.title = element_text(size = 30 ,hjust = 0.5))
+p <- p +theme(axis.title.x=element_text(size=15))
+p <- p +theme(axis.title.y=element_text(size=15))
+p <- p + guides(fill=guide_legend(title=""))
+p <- p + annotate("Add text here", x = , y = )
+p
+```
+With the last line you could include the Mantel test statistic and p-value for the mantel test you ran above. This would be a great example of a publication ready graphic. 
