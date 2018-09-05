@@ -3,7 +3,7 @@ title: "Introduction to Phyloseq"
 subtitle: "Written by Gordon Custer 2018"
 output: html_notebook
 ---
-The R package "Phyloseq" was developed by Paul McMurdie and Susan Holmes in 2013 and is essentially a wrapper (meaning pulls from many different packages and funcitons) of many commonly used functions for analysis, visualization and storage of microbial data. What phyloseq lacks in flexibility it makes up for in ease of use. This package provides many pre-programed functions to assist in the analysis of microbial data. However, the major downfall of Phyloseq is the inability to drastically alter many of the functions. For now we wont worry about that. Unless you want an extremely specific analysis, changes are Phyloseq has a function for you.
+The R package "Phyloseq" was developed by Paul McMurdie and Susan Holmes in 2013 and is essentially a wrapper (meaning pulls from many different packages and functions) of many commonly used functions for microbial analysis, visualization and storage of microbial data. What phyloseq lacks in flexibility, it makes up for in ease of use. This package provides many pre-programmed functions to assist in the analysis of microbial data. However, the major downfall of Phyloseq is the inability to drastically alter many of the functions. For now we wont worry about that. Unless you want an extremely specific analysis, changes are Phyloseq has a function for you.
 
 Phyloseq requires your data to be in the form of a "Phyloseq Object". This object should contain at the minimum, taxonomy, sample data, and your ESV table. In addition to these three "required" components, the phyloseq object can contain a phylogenetic tree. 
 
@@ -13,44 +13,50 @@ In order to carry out downstream analysis, let's put our phyloseq object togethe
 3. Sample Data produced during the Intro to R tutorial
 4. *OPTIONAL Phylogentic tree produced by DADA2
 
-Lets load the R Environemnt from the DADA2 tutorial as it should contain the necessary peices. We will have to load the metadata sheet from the first tutorial seperately. Do you remebmer the correct peice of code for reading in a .csv file? If not, try google!
+Lets load the R Environment from the DADA2 tutorial as it should contain the necessary pieces. We will have to load the metadata sheet from the first tutorial separately. Do you remember the correct piece of code for reading in a .csv file? If not, try Google!
 
-In this seciton we make sure we have the correct data available in our environemnt. We will also make sure all the data is in the correct form prior to assignment to the phyloseq object. From here-on  phyloseq object and ps are used interchangably. After this section, you will have a phyloseq object, and this obejct allows for easy data manipulation and visulization.
+In this section we make sure we have the correct data available in our environment. We will also make sure all the data is in the correct form prior to assignment to the phyloseq object. From here-on the terms phyloseq object and ps are used interchangeably. After this section, you will have a phyloseq object, and this object allows for easy data manipulation and visualization.
 
 ```{r}
 #Look at the out_table's help page and see what it does. 
-my_otu_table = otu_table(seqtabNoC, taxa_are_rows = FALSE)
+my_otu_table <- otu_table(seqtabNoC, taxa_are_rows = FALSE)
 #What does this taxa_are_rows arugument do?
 #Do the same thing for the sample_data and the tax_table help page.
-sampledata = sample_data(metadata)
-my_tax_tab = tax_table(tax)
+sampledata <- sample_data(metadata)
+my_tax_tab <- tax_table(tax)
 
 ps1 <- phyloseq(my_otu_table, sampledata, my_tax_tab)
 ```
 
-When working with 16s sequences, it is good practice to remove any reads which did not assign to the kingdom bacteria (or Fungi if you are working with ITS). The primers we use may bind to regions in the genomes of archea or other non-targeted organisms. While this may not always be a bad thing, as we might want to know how archea might respond to an environmental stimuli, in this case, we are only concerened with the response of bacteria, and therefore, we want to exclude all non-bacteria reads. 
+When working with 16s sequences, it is good practice to remove any reads which did not assign to the kingdom bacteria (or Fungi if you are working with ITS). The primers we use may bind to regions in the genomes of archea or other non-targeted organisms, and when this happens they are incldued in the final ESV table. While this may not always be a bad thing, as we might want to know how archea might respond to an environmental stimuli, in this case, we are only concerned with the response of bacteria, and therefore, we want to exclude all non-bacteria reads. 
 
-Phyloseq offers several funcions which are used to remove a sampeles or organisms from your phyloseq object based on some criteria. The first command we will use is the subset_taxa command. This command allows you, as a researcher, to remove certian taxa based upon taxonomic assignment. In this case we will want to remove all taxa which did not assign to the kingdom bacteria. 
+Phyloseq offers several functions which are used to remove a sample or organism from your phyloseq object based on some criteria. The first command we will use is the subset_taxa command. This command allows you, as a researcher, to remove certain taxa based upon taxonomic assignment. In this case we will want to remove all taxa which did not assign to the kingdom bacteria. 
 ```{r}
 ps<-subset_taxa(ps, Kingdom == "Bacteria")
 ```
 
-Exercise: Make another phyloseq object named ps_acidio which only includes taxa assigned to the phylum Acidiobaceria. Make a third phyloseq object that includes every member that did not assign to bateria. Hint: Think back to last week; what does the ! do? 
+Exercise: Make another phyloseq object named ps_acidio which only includes taxa assigned to the phylum Acidiobaceria. Make a third phyloseq object that includes every member that did not assign to bacteria. Hint: Think back to last week; what does the ! do? 
 
-Sometimes samples will not sequence as deeply as you would like. An example of this would be if all of your samples have 20k sequences and one only has 100. In order to avoid throwing away too many sequences in the process known as rarefying or making potetially misleading conclusions as could be the case if we within sample standardize (later refered to as transformation), we will examine our sequence depth and remove any samples which do not have enough reads. Keep in mind there is no magic number for 'not enough reads' and this should be assessed on a per project basis. Here we ook at sampling depth per sample and remove any samples with extremely low counts prior to rarefiying. Do you think we need to remove any samples based on the read counts?
+Sometimes samples will not sequence as deeply as you would like. An example of this would be if all of your samples have 20k sequences and one only has 100. In order to avoid throwing away too many sequences in the process known as rarefying or making potentially misleading conclusions, as could be the case if we within sample standardize (later referred to as transformation), we will examine our sequence depth and remove any samples which do not have enough reads. Keep in mind there is no magic number for 'not enough reads', and this should be assessed on a per project basis. Here we look at sampling depth per sample and remove any samples with extremely low counts prior to rarefying. Do you think we need to remove any samples based on the read counts?
 
-For those of you who are not familaiar, the process of rarefaction occurs when all samples are given the same nubmer of total reads. The idea is that in doing so samples can be directly compared to each other. Sequences which are very common will have higher probability of being chosen, but sequences with low abundance will have lower probability of being chosen. The idea is that in the end the same proportions of sequences will be represented. Can you think of why this might not be the case?
+For those of you who are not familiar, the process of rarefaction occurs when all samples are given the same number of total reads. The idea is that in doing so samples can be directly compared to each other. Sequences which are very common will have higher probability of being chosen, but sequences with low abundance will have lower probability of being chosen. The idea is that in the end the same proportions of sequences will be represented. Can you think of why this might not be the case?
 
+Here we look at the number of reads per sample and remove any sample which may need to be done away with. Use the subset_samples() command. Read the help page. Further explanation of this command is found in this tutorial as well. 
 ```{r}
 sort(rowSums(otu_table(ps)))
-#Rarefiy is an option as well after removing problem samples but im exploring the transformation method
-ps_r <- rarefy_even_depth(ps, rngseed = 15)
-sort(rowSums(otu_table(ps_r)))
+ps<-subset_samples()
 ```
 
-The problem with rarefaction is that the process can cause more rare taxa to be left out entirely. In addtion, the process forces us to 'throw away' data. In many cases, a sample could have 100k reads but by rarefying to an even depth we may be throwing out 90k of them. In theory rarefaction keeps the proportions of sequences the same. However, we do not if this is true and have no real way of being sure. A suitable alterative is to standardize wihtin a sample. This method sums each sample then divides each taxa by the total reads in that sample to give us a proporiton of the total reads accounted for by that taxa witin that read. 
+Now we can rarefy
+```{r}
+ps_rarefy <- rarefy_even_depth(pss, rngseed = 15)
+sort(rowSums(otu_table(ps_rarefy)))
+```
+Did you get an error? Can you troubleshoot this code to find out what is wrong?
 
-Standardization or trasformation is again performed on the original phyloseq object (ps) not the rarefied one; using the rarefied ps object would defeat the purpose as many reads would have already been thrown away. Examine the rarefied ps object and the transformed ps object. What do you notice about the otu tables? 
+The problem with rarefaction is that the process can cause rare taxa to be left out of the final ps object entirely. In addition, the process forces us to 'throw away' data. In many cases, a sample could have 100k reads but by rarefying to an even depth we may be throwing out 90k of them. In theory, rarefaction keeps the proportions of sequences the same. However, we do not know if this is true and have no way of being 100% sure. A suitable alternative is to standardize within a sample. This method sums the number of reads in each sample. Then divides each taxa by the total reads in that sample to give us a proportion of the total reads accounted for by that taxa within that sample. 
+
+Standardization or transformation is again performed on the original phyloseq object (ps) not the rarefied one; using the rarefied ps object would defeat the purpose as many reads would have already been thrown away. Examine the rarefied ps object and the transformed ps object. What do you notice about the otu tables? 
 ```{r}
 ps_transformed <- transform_sample_counts(ps, function(x) x / sum(x) )
 sort(rowSums(otu_table(ps_transformed)))
@@ -58,46 +64,52 @@ sort(rowSums(otu_table(ps_transformed)))
 ps_transformed = filter_taxa(ps_transformed, function(x) mean(x) > 1e-5, TRUE)
 ```
 
-Another function provided by the phyloseq package is the subset_samples() funciton. This function operates in a similar fashion to the subset_taxa() funciton detailed above, except we can subset samples this time instead of taxa. Commonly you will want to run a similar analysis or function on two diferent inputs. Here, I introduce what I like to call a "switch". A switch allows you to quickly change the input and run all subesequent analysis without having to go through the code and changing the object which can be very tedious. The example below toggles the input between the rarefied ps object and the transformed ps object. In order to keep R from interpreting the line you can place a # over it. This is the same as a comment but if you un-hash it the line will acutally run. 
+Another function provided by the phyloseq package is the subset_samples() function. Yep, the same one you used to remove the sample with a very low number of reads. This function operates in a similar fashion to the subset_taxa() function detailed above, except we can subset based upon sample name this time instead of taxonomy. Commonly you will want to run a similar analysis or function on two different inputs. Here, I introduce what I like to call a "switch". A switch allows you to quickly change the input and run all subsequent analysis without having to go through the code and change the object. This can be very tedious. The example below toggles the input between the rarefied ps object and the transformed ps object. In order to keep R from interpreting the line you can place a # over it. This is the same as a comment and if you un-hash it the line will run. 
 
-Exercise: An example is provided on how to create a new ps_object with only a subset of samples. Create new phyloseq objects which contain only the Bulk or Rhizosphere soil origins. Use the transformed input. Then make all four objects with the rarefied phyloseq object as your input be sure to name the rarified objects differently than the transformed ones. 
+Exercise: An example is provided on how to create a new ps object with only a subset of samples. Create new phyloseq objects which contain only the Bulk or Rhizosphere soil origins. Use the transformed input. Then make all four objects with the rarefied phyloseq object as your input be sure to name the rarefied objects differently than the transformed ones. 
 ```{r}
 ps<-ps_transformed
-#ps<-ps_r
+#ps<-ps_rarefy
 ps_Early_transformed <- subset_samples(ps, Time == "Early")
 ps_Late_transformed <- subset_samples(ps, Time == "Late")
 ```
 
-Now that you have prepped your data, you are ready to start with anaylysis and subsequent interpretation. One of the most common methods for assessing the impact of a treatment is to compare diversity metrics. For this we will look at alpha and beta diversity metrics. What is alpha diversity? Google it and find out. I know wikipedia has a good explanation!
+Now that you have prepped your data, you are ready to start with analysis and subsequent interpretation. One of the most common methods for assessing the impact of a treatment is to compare diversity metrics. For this we will look at alpha and beta diversity metrics. What is alpha diversity? Google it and find out. I know Wikipedia has a good explanation!
 
-Phyloseq offers several functions which facilitate comparisons of alpha diverstity metrics. The first one we will look at is estimate_richness(). This function returns a dataframe with many alpha diversity mertics. While by itself does not tell us much (as its hard to interpret a dataframe), we can summarize the data and run statistical tests on this dataframe to determine what type of effect our treatment has on alpha diversity. 
+Phyloseq offers several functions which facilitate comparisons of alpha diversity metrics. The first one we will look at is estimate_richness(). This function returns a data frame with many alpha diversity metrics. While by itself does not tell us much (as its hard to interpret in data frame form), we can summarize the data and run statistical tests on this data frame to determine what type of effect our treatment has on alpha diversity. 
 
-The richness functions in Phyloseq do not accept transformed data and as such you must use the rarefied phyloseq object when running these funcitons. 
+The richness functions in Phyloseq does not accept transformed data and as such you must use the rarefied phyloseq object when running these functions. 
+
+Exercise: Finish this line of code. Use the manual page. 
 ```{r}
-Richness<-estimate_richness(ps_r)
+Richness<-estimate_richness()
 ```
-Examine the Richness dataframe and make mental note of what you see. 
 
-Excercise: Now lets use the same methods we used in the "Intro to R" tutorial to extract information from the sample names and incldue it as metadata in additional columns. We will want seperate columns displaying infestation stage, sampling time, and soil origin (Bulk/Rhizosphere).
+Examine the Richness data frame and make a mental note of what you see. Can you make inferences based on the entire data frame or does it prove to be too cluttered? 
 
-Like I mentioned above, it is very difficult to make sense of a data table of numbers. One way of approaching this problem is to run a statistical test such as an ANOVA and a post-hoc differences test to determine whether or not alpha diversity metrics are different across treatment types. Below, I offer an example of how to run a simple ANOVA and Tukey's HSD test. The example examines the 'observed' alpha diversity metric. The "observed" metric is simply the number of unique OTUs observed within a site. There are several more options. What are some of them? Look up a few of the metrics  and what they do. Wikipedia is a good resource for this. 
+Exercise: Now lets use the same methods we used in the "Intro to R" tutorial to extract information from the sample names and include it as metadata in additional columns on the richness data frame. We will want separate columns displaying infestation stage, sampling time, and soil origin (Bulk/Rhizosphere). Remember: dataframe$newcolummn<-substr(rownames(dataframe), start= , stop=).
 
-Exercise: Run the same analysis for Shannon diversity and then choose one more diversity metric and do the same. What are the strengths and weaknesses of the three alpha diversity metrics you examiend (observed, shannon and your choice)? When would someone want to use richenss as opposed to shannon diversity? 
+Like I mentioned above, it is very difficult to make sense of a data table of numbers. One way of approaching this problem is to run a statistical test such as an ANOVA and a post-hoc differences test to determine whether or not alpha diversity metrics are different across treatment types. Below, I offer an example of how to run an ANOVA and Tukey's HSD test. The example examines the 'observed' alpha diversity metric. The "observed" metric is simply the number of unique OTUs observed within a site; there are several more options. What are some of them? Look up a few of the metrics and what they do. Again, Wikipedia is a good resource for this. 
+
+Exercise: Run the same analysis for Shannon diversity and then choose one more diversity metric and do the same. What are the strengths and weaknesses of the three alpha diversity metrics you examined (observed, Shannon and your choice)? When would someone want to use Shannon diversity as opposed to richness? 
+
+Be sure to look at the help page for the aov() function. You have not seen the input structure for this type of function yet. What does the ~ do?
+
 ```{r}
 richness<-aov(Observed~ Soil_Origin, data = Richness_PB )
 summary(richness)
 tukeys_richness<-TukeyHSD(richness)
 ```
 
-In many cases you will want to save summary statistics assocaited with your data. Remember the excel workbook we had for saving important data? This would be a great example of data you should save for use at a later time. You can simply copy the output or you could save it in your working environment and save it to a .csv file on your desktop. Hint the funciton is write.csv(). You can use the help page to decipher what you need to save a copy of this. The function describeBy() produces summary statsitics and can take into account multiple groups. Here we will have multiple grouping factors (infestation stage and soil origin).
+In many cases you will want to save summary statistics associated with your data. Remember the excel workbook we had for saving important data? This would be a great example of data you should save for use at a later time. You can copy the output or you could save it in your working environment and save it to a .csv file on your desktop. Hint the function is write.csv(). You can use the help page to decipher what you need to save a copy of this. The function describeBy() produces summary statistics and can take into account multiple groups. Here we will have multiple grouping factors (infestation stage and soil origin).
 
-Excersice: Install the package (psych) which contains the describeBy() function and run it to summarize the richness stats by both infestation stage and soil origin. hint use list() when trying to summarize  by multiple factors. 
+Exercise: Install the package (psych) which contains the describeBy() function and run it to summarize the richness stats by both infestation stage and soil origin. hint use list() when trying to summarize by multiple factors. 
 ```{r}
 #get summary stats for this 
 describeBy()
 ```
 
-Looking at a dataframe of numbers can be extremely difficult, even impossible, to interpret. For our first attempt at producing a visual represntation of the richness data we will use the plot_richness() function. This function runs the same analysis as above richness and plots the results. 
+Looking at a data frame of numbers can be extremely difficult, even impossible, to interpret. For our first attempt at producing a visual representation of the richness data we will use the plot_richness() function. This function runs the same analysis as above richness and plots the results. 
 
 With the help of the help page examine the function below and alter it to create a plot which examines the richness measures for the two infestation stages. I think it good practice to save plots to objects. This way you can alter the plot by adding a single line of code instead of having to re-run the entire chunk.
 
@@ -108,8 +120,9 @@ p <- plot_richness(ps_r, "Infestation_Stage", measures=alpha_meas)
 p <-p + geom_boxplot(data=p$data, aes(x=Soil_Origin, y=value, color=NULL), alpha=0.1)
 p
 ```
+Can you spot the error here?
 
-If you run the chunk of code from above you will see the default ggplot box and whisker plot. Run the code below and look at the differences. Phyloseq is a ggplot wrapper and as such allows programers to use ggplot syntax for creating graphs. This allows a researcher to greatly alter the plots. You can color code, change the transparency, the size of text and many, many more things as well.
+If you run the chunk of code from above you will see the default ggplot box and whisker plot. Run the code below and look at the differences. Phyloseq is a ggplot wrapper and allows programmers to use ggplot syntax for creating graphs. This allows a researcher to greatly alter the plots; you can color code, change the transparency, the size of text and many, many more things as well.
 
 ```{r}
 p <- p + ggtitle("Alpha Diversity Measures of Early Samples") +xlab("Soil Origin") + ylab("")+ theme(plot.title = element_text(size = 20, hjust=0.5))
@@ -121,16 +134,16 @@ p
 
 As I mentioned earlier, you will want to avoid using rarefied data whenever possible. Now that we are finished with the richness metrics we can change our data back over to the transformed phyloseq object. 
 
-Excersize: Re-run the commands you created above to create a bulk and rhizosphere phyloseq object as well as an early and late object using hte transfomred data. 
+Exercise: Re-run the commands you created above to create the bulk and rhizosphere phyloseq objects using the transformed data. 
 ```{r}
 ps<-ps_transformed
 ```
 
-One of the most common means for visualizing a multivariate dataset is to ordinate. Many different methods for ordinating data exist, some of which include principal componenet analysis, canonical correlation analysis, metric multideminsional scaling, and non-metric multideminsional scaling are just a few. Choosing the right ordination to use is a important and the choice is not an arbitrary one. This paper is great for helping you make the right choice. https://onlinelibrary.wiley.com/doi/full/10.1111/mec.13536. We will not address chosing a method in this class, but if multivariate statistics interest you there are offerings through the Statistics department here at UW which are worth taking. For now, we will use non-metric multideminsional scaling. The benefits of this analyis are that the test doest not assume normality in the data (normality is almost never observed in ecological count data. Do you know waht we mean by normality?), it avoids the assumption of linear relationships in your data and you can choose (nearly) any distance metric. For these reasons, NMDS is often the best choice for ecological data. However, dont trust me, always examine your choices before proceding with an analysis.  
+One of the most common means for visualizing a multivariate data set is to ordinate. Many different methods for ordination of data exist, some of which include principal component analysis, canonical correlation analysis, metric multidimensional scaling, and non-metric multidimensional scaling just to name a few. Choosing the right ordination technique to use is a important and the choice is not an arbitrary one. This paper is great for helping you make the right choice. https://onlinelibrary.wiley.com/doi/full/10.1111/mec.13536. We will not address choosing a method in this class, but if multivariate statistics interest you there are offerings through the Statistics department here at UW which are worth taking. For now, we will use non-metric multidimensional scaling. The benefits of this analysis are that the test doesn't not assume normality in the data (normality is almost never observed in ecological count data. Do you know what we mean by normality?), it avoids the assumption of linear relationships in your data and you can choose (nearly) any distance metric. For these reasons, NMDS is often the best choice for ecological data. However, don't trust me, always examine your choices before proceeding with an analysis!  
 
-Another non-trivial choice you must make is which distance metric to use. Commonly students will confuse distance metrics with alpha diversity metrics such as shannon diversity, or richenss. However, they are not the same and are used to tell us very different things. Alpha diversity metrics can tell us how diverse a sample is and boils down to a single number. "The average shannon diversity of the dead samples was 4.5". Statistical distance on the other hand, much like the name implies, measures the distance between two objects. While this may seem simple, the choice of which distance metric to use can be very complicated. Many distance metrics exist such as bray-curtis, euclidian, manhattan, jacard, just to name a few. While they all essentially do the same thing, the intracies of each metric are very different. In order to keep this simple we will only look at bray-curtis and jaccard. In the most simple sense, jaccard distance only accounts for presence absense. On the other hand, Bray-Curtis distance accounts for both presence-absense and abundance. Look at the help page for distance() to get an idea of the available options. 
+Another non-trivial choice you must make is which distance metric to use. Commonly students will confuse distance metrics with alpha diversity metrics such as Shannon diversity, or richness. However, they are not the same and are used to tell us very different things. Alpha diversity metrics can tell us how diverse a sample is and boils down to a single number. "The average Shannon diversity of the dead samples was X". Statistical distance on the other hand, much like the name implies, measures the distance between two objects in space. While this may seem simple, the choice of which distance metric to use can be very complicated. Many distance metrics exist such as Bray-Curtis, euclidean, Manhattan, Jaccard, just to name a few. While they all essentially do the same thing, the intricacies of each metric are very different. In order to keep this simple we will only look at Bray-Curtis and Jaccard. In the most simple sense, Jaccard distance only accounts for presence absence. On the other hand, Bray-Curtis distance accounts for both presence-absence and abundance. Look at the help page for distance() to get an idea of the available options. 
 
-One of the biggest pro's of Phyloseq is the ease of implmentation of complex statistical tests and tools. The ordinate() funciton offers 8 options for ordination methods, and many distance metrics. Below we run the ordination and then plot it using the ggplot2 wrapper plot_ordination() function. Much like the plot_richness() function above we can customize our graph by changing and adding astetics to our object (ord_plot). 
+One of the biggest pro's of Phyloseq is the ease of implementation of complex statistical tests and tools. The ordinate() function offers 8 options for ordination methods and many distance metrics. Below we run the ordination and then plot it using the ggplot2 wrapper plot_ordination() function. Much like the plot_richness() function above we can customize our graph by changing and adding ascetics to our object (ord_plot). 
 
 ```{r}
 ord<-ordinate(ps, method = "NMDS", distance = "bray")
@@ -138,17 +151,18 @@ ord_plot<-plot_ordination(ps, ord, color="Infestation_Stage", shape = "Time")
 ord_plot <-ord_plot + theme_bw()
 ord_plot  
 ```
-Excersize: Add a title to this graph and center it above the graph. Make the title descriptive. 
+Exercise: Add a title to this graph and center it above the graph. Make the title descriptive. 
+Bonus: Can you color the points so dead is grey and healhty is green?
 
-Often, treatment will dramatically effect the compoisiton of your samples. If the changes occur at high taxonomic levels you may want to visuzalize this for publicaitons or for your own need. What do you know, Phyloseq offers a quick and easy funciton for plotting a bar graph of taxa abundances. Like all other functions the help page is extremly useful. 
+Often, treatment will dramatically effect the composition of your samples. If the changes occur at high taxonomic levels you may want to visualize this for publications or for your own need. What do you know, Phyloseq offers a quick and easy function for plotting a bar graph of taxa abundances. Like all other functions the help page is extremely useful. 
 
-In this function we do not iteratively add the astetics like we have done before but call them all at once. This does the exact same thing as the other graphs we made but keeps the code more compact. If the graph is computationaly intensive this may not be the way to go. These graphs can be very messy if you are plotting the lower taxonomic levels and in most cases they are only useful for phylum or class levels. However, if you are workign with samples that are not taxonomically diverse, as might be the case with human oral samples or something of the sort, you might be able to use this at a lower taxonomic level.  
+In this function we do not alliteratively add the ascetics like we have done before but call them all at once. This does the exact same thing as the other graphs we made but keeps the code more compact. If the graph is computationally intensive this may not be the way to go. These graphs can be very messy if you are plotting the lower taxonomic levels and in most cases they are only useful for phylum or class levels. However, if you are working with samples that are not taxonomically diverse, as might be the case with human oral samples or something of the sort, you might be able to use this at a lower taxonomic level.  
 
 ```{r}
 bar_graph_phylum_abundances<-plot_bar(mergedR_transformed, x= "Site", fill = "Phylum", title = "Phylum Abundances Rhizosphere Soil") + theme(plot.title = element_text(hjust=0.5)) + geom_bar(aes(color=Phylum, fill=Phylum), stat="identity", position="stack") + theme(plot.title = element_text(hjust=0.5)) + scale_fill_manual(values = col_vector) + scale_color_manual(values = col_vector)
 ```
 
-Phyloseq offers many of the most commonly utilized analyses in microbial ecology. The benefits of using a package such as this include the fact that help is not hard to find on the internet and the functions are pre-programed which keeps you from having to come up with the function from scratch. As you have seen this tutorial you have a certian degree of flexibility from the preprogramed functions. However, some tests like a mantel test or adonis testing are not offered in phyloseq. To address these tests you will have to use other packages such as vegan. In the next turtoial we can look at some of the options offered by packages like vegan. 
+Phyloseq offers many of the most commonly utilized analyses in microbial ecology. The benefits of using a package such as this include the fact that help is not hard to find on the internet and the functions are pre-programmed which keeps you from having to come up with the function from scratch. As you have seen this tutorial you have a certain degree of flexibility from the programmed functions. However, some tests like a mantel test or Adonis testing are not offered in phyloseq. To address these tests you will have to use other packages such as vegan. In the next tutorial we can look at some of the options offered by packages like vegan. 
 
 Citations and References:
 1. http://journals.plos.org/plosone/article?id=10.1371/journal.pone.0061217
