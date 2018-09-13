@@ -27,7 +27,6 @@ As an example, lets download the file named "pima.csv" and save it in your folde
 
 https://github.com/gcuster1991/Micro_Div
 
-
 We want to read in the file and see what happens when we specify the wrong location. Up until now all text has been written outside of a block of code. In order to add comments, which is a really good, I mean really good, habit to get into you only need to add a "#" before any line you do not wish R to interpret. In the code below you can see certain lines are not interpreted even if you ran the block as a whole. These comments will not show up in your rendered .html notebook either. You have to open the notebook in R studio to access these comments. 
 
 Here we have our first block of code, also referred to as a "chunk". Anything in here can be ran by clicking the green play button in the top right corner of the block. In addition, we can # out this block by placing a "#" before the r in the ```{r}. The keyboard shortcut for inserting a new block of code is "Command" + "Option" + "i".
@@ -53,10 +52,9 @@ Pima<-read.csv(Pima.csv)
 
 setwd("/Users/gordoncuster/Downloads/")
 Pima<-read.csv("Pima.csv")
-
 ```
 
-R will yell at you. Get used to it. It happens all the time. Learn to embrace it and you will be well on your way to solving any problem R can throw at you. Did you notice "<-" saves what ever is to the right as a variable named what ever you have to the left of the "<-". This can be extremely useful when subsetting a data frame or running an analysis. You don't want to have to re-run it every time. By saving it to a new variable you can access it whenever you wish. 
+R will yell at you. Get used to it. It happens all the time. Learn to embrace it and you will be well on your way to solving any problem R can throw at you. Did you notice "<-" saves what ever is to the right as a variable named what ever you have to the left of the "<-". This can be extremely useful when subset ting a data frame or running an analysis. You don't want to have to re-run it every time. By saving it to a new variable you can access it whenever you wish. 
 
 Tip: Help pages. Under the Help tab, type "read.csv". This page will tell you everything that the function read.csv (well actually read.table) requires and can do. Become familiar with these pages and you can avoid many head aches. Each page provides a brief description of the function, the usages, required arguments, outputs (values), and a short example snippet of code. 
 
@@ -70,10 +68,11 @@ plot(Pima)
 plot(Pima$diastolic)
 hist(Pima$diastolic)
 ```
-In the section above we introduced an easy way to pull out a single column from a data set. The "$" operator allow you to select a single column. Suppose you wanted to select several columns. Lets say columns 1:5. What would you do? Let's use this opportunity to try googling your problem. This is another useful skill to master. If you can put your problem in the correct terms, it is very likely someone else has faced the same difficulty and will be able to help. 
+In the section above we introduced an easy way to pull out a single column from a data set. The "$" operator allow you to select a single column. Suppose you wanted to select several columns. Lets say columns 1-5. What would you do? Let's use this opportunity to try Goggling your problem. This is another useful skill to master. If you can put your problem in the correct terms, it is very likely someone else has faced the same difficulty and will be able to help. 
 
 Exercise: Search Google for the answer to this problem. I would say start Googling something like "Program R select multiple columns" or "subset data frame to only include certain columns Program R". As you can see from these two suggestions, the exact verbiage isn't that important. 
 
+Answer: 
 ```{r}
 subset_Pima<-Pima[,c(1:5)]
 ```
@@ -101,11 +100,11 @@ require(faraway)
 (.packages())
 ```
 
-While this package loaded relativley quickly some packages take hours to successfully download and install. One such package, DADA2, which we will use later, takes several hours and requires many dependencies to run successfully. At the end of this exercise we will install this so it is ready for us to being using at the beginning of next class.  
+While this package loaded relatively quickly some packages take hours to successfully download and install. One such package, DADA2, which we will use later, takes several hours and requires many dependencies to run successfully. At the end of this exercise we will install this so it is ready for us to being using at the beginning of next class.  
 
 Exercise. Find a package online that interests you, install it and load it. Explore some of the functions included in the package. 
 
-As I mentioned earlier, you can always Google your problem. If you ran "install.packages("DADA2")" nothing would install. That is because the DADA2 package isn't available on the CRAN repository. This package is available through bioconductor. Many packages (>1500) which are extremely useful in the analysis of high throughput genomic data are found on bioconductor. This is a great example of the flexiblity of R. Below is a link to the installation guide for DADA2. We will start this installation today. Look at the link below for a detailed walk through on the installation of DADA2.
+As I mentioned earlier, you can always Google your problem. If you ran "install.packages("DADA2")" nothing would install. That is because the DADA2 package isn't available on the CRAN repository. This package is available through bioconductor. Many packages (>1500) which are extremely useful in the analysis of high throughput genomic data are found on bioconductor. This is a great example of the flexibility of R. Below is a link to the installation guide for DADA2. We will start this installation today. Look at the link below for a detailed walk through on the installation of DADA2.
 
 https://benjjneb.github.io/dada2/dada-installation.html
 
@@ -115,10 +114,15 @@ Before we call it quits today, lets take this opportunity to practice with some 
 
 Exercise: Download the Metadata.csv sheet from GitHub and read it into R.
 
+Answer:
+Download from GitHub and then load into R. 
 ```{r}
-#first we need to create a column named Soil. This column will tell us whether the sample was collected from the bulk or rhizosphere component. 
+metadata<-read.csv("/Users/gordoncuster/Desktop/Micro_Div/metadata.csv")
+```
+First we need to create a column named Soil. This column will tell us whether the sample was collected from the bulk or rhizosphere component. 
+```{r}
 #look up the substr command's help page
-metadata$Soil<-substr(metadata$Sample, start = 4, stop = 4)
+metadata$Soil<-substr(metadata$Sample_ID, start = 4, stop = 4)
 
 #We create and index with the values currenty in the sheet
 index <- c("A", "B")
@@ -128,20 +132,35 @@ values <- c("Rhizosphere", "Bulk")
 metadata$Soil<- values[match(metadata$Soil, index)]
 ```
 
-Exercise: Create a column called "Time". The time can be extracted from the third character in the sample name. For example, H11B and H12B. These two samples are from the same site. However, H11B was collected at time 1 and H13B was collected at time 2. Time 1 is the early sampling time. Time is from the from a late sampling time. Change the values in the newly created "Time" column to "Early" or "Late". Use the section above as a template for this. 
+Exercise: Create a column called "Infestation_Stage". This is designated by the first letter in the sample name. H means the sample was collected from a healthy stand, I from an infested stand, and D from a dead stand. In the column called "Infestation_Stage" pull out the first letter, then replace it with "Healthy", "Infested", or "Dead". Use the section above as a template for this. 
 
+Answer:
 ```{r}
-rownames(metadata)<-metadata$Sample_ID
-metadata$Sample_ID=NULL
+metadata$Infestation_Stage<-substr(metadata$Sample_ID, start = 1, stop = 1)
+
+#We create and index with the values currenty in the sheet
+index <- c("H", "D")
+#the values vector contains what we wish to insert in the pace of the "index"
+values <- c("Healthy", "Dead")
+
+metadata$Infestation_Stage<- values[match(metadata$Infestation_Stage, index)]
 ```
+
 Lets look at our newly minted metadata sheet.
 ```{r}
 View(metadata)
 ```
 
+Exercise: Save your metadata file as a .csv to your desktop folder. Save it as a new file from the one your downloaded. 
+
+Answer:
+```{r}
+write.csv("/Users/gordoncuster/Desktop/Micro_Div/metadata_final.csv")
+```
+
 Lastly, suppose you are working with a huge data set. For many of you this will be the case. In order to avoid having to read in your data each and running time consuming code each and every time we can save your environment and reload it when you want to come back. To do so, look in the upper right pane under the environment tab. The save icon here will save your environment. 
 
-Exercise: Save your working environment for use at a later date. Empty your environment and reload your saved data. 
+Exercise: Save your working environment for use at a later date. Empty your environment and reload your saved data to make sure you are comfortable with this skill. 
 
 Citations and Resources:
 1: https://www.r-project.org/ 

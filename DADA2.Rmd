@@ -40,6 +40,7 @@ Dada2 assumes the following has been addressed prior to starting the workflow:
 After we have confirmed that our reads satisfy the three prerequisites, we can proceed with the DADA2 pipeline for processing samples. First, we want to check which version of DADA2 we have installed. This is important for other researchers who want to duplicate our efforts. It is good practice to have an excel workbook and to record all of this information there. I will tell you other times you will want to record information in this excel workbook.  Create an excel workbook and place this information in it. Save the workbook to your desktop folder. 
 
 ```{r}
+library(dada2)
 packageVersion("dada2")
 ```
 
@@ -49,8 +50,8 @@ In the first step, we want to remove reads that do not meet a certain quality th
 ```{r}
 # File parsing
 #As mentioned earlier, DADA2 assumes the reads are split into forward and reverse. You will want to make two folders, one named "forward" and the other "reverse". You want to place all forward reads in the forward folder and the same for the reverse reads. The first two lines here tell R where it can find the reads. 
-pathF <- "/Users/gordoncuster/Desktop/Dada2/RawReads/Potato_Bac/forward/" # CHANGE ME to the directory containing your demultiplexed forward-read fastq files
-pathR <- "/Users/gordoncuster/Desktop/Dada2/RawReads/Potato_Bac/reverse/" # CHANGE ME ...
+pathF <- "/Users/gordoncuster/Desktop/Micro_Div/Reads/Foward" # CHANGE ME to the directory containing your demultiplexed forward-read fastq files
+pathR <- "/Users/gordoncuster/Desktop/Micro_Div/Reads/Reverse" # CHANGE ME ...
 
 #This next section createds a new folder inside the forward and reverse folders for the filtered reads. This is where you will be working from once you have filtered and trimmed the raw reads. 
 filtpathF <- file.path(pathF, "filtered") # Filtered forward files go into the pathF/filtered/ subdirectory
@@ -81,7 +82,7 @@ Exercise: View the help page for the filterAndTrim() function. Explore the avail
 ```{r}
 track.filt<-filterAndTrim(fwd=file.path(pathF, fastqFs), filt=file.path(filtpathF, fastqFs),
               rev=file.path(pathR, fastqRs), filt.rev=file.path(filtpathR, fastqRs),
-              truncLen=c(240,100), maxEE=2, truncQ=11, maxN=0, rm.phix=TRUE,
+              truncLen=c(240,175), maxEE=2, truncQ=11, maxN=0, rm.phix=TRUE,
               compress=TRUE, verbose=TRUE, multithread=TRUE)
 
 ```
@@ -91,8 +92,8 @@ The track.filt object will contain two columns. This is used to keep track of th
 In this section we are setting up the paths to the filtered files produced the previous step. This is similar to the section above in which you set the original path to the raw reads. The first two lines here change the path to the filtered reads. 
 ```{r}
 # File parsing
-filtpathF <- "/Users/gordoncuster/Desktop/Dada2/RawReads/Potato_Bac/forward/filtered" # CHANGE ME to the directory containing your filtered forward fastq files
-filtpathR <- "/Users/gordoncuster/Desktop/Dada2/RawReads/Potato_Bac/reverse/filtered" # CHANGE ME ...
+filtpathF <- "/Users/gordoncuster/Desktop/Micro_Div/Reads/Foward/filtered" # CHANGE ME to the directory containing your filtered forward fastq files
+filtpathR <- "/Users/gordoncuster/Desktop/Micro_Div/Reads/Reverse/filtered" # CHANGE ME ...
 filtFs <- list.files(filtpathF, pattern="fastq.gz", full.names = TRUE)
 filtRs <- list.files(filtpathR, pattern="fastq.gz", full.names = TRUE)
 sample.names <- sapply(strsplit(basename(filtFs), "_"), `[`, 1) # Assumes filename = samplename_XXX.fastq.gz
@@ -156,6 +157,8 @@ Exercise: View the first 5 columns of your sequence table.
 
 As mentioned above, it is VERY important to track the number of reads retained after each step throughout the pipeline. This chunk of code allows you to track the number of reads. While there is no magic number or percentage of reads retained, you will want to address this on a data set by data set basis. Consider your end goal prior to choosing the desired number of retained sequences. Can you think of an example when you would want to be very stringent with the reads retained? What about an example of when you wouldn't care quite as much?
 
+This is a great example of data you might want to save in your excel workbook. 
+
 ```{r}
 #remember the Unique() function? This is another variation of it. 
 getNreads <- function(x) sum(getUniques(x))
@@ -192,6 +195,7 @@ detach("package:phangorn", unload=TRUE)
 
 In the end, we have filtered and trimmed our data, learned errors, removed and or fixed non-biologically relevant variants, removed chimeras, created a sequence variant table, and assigned taxonomy. We now have all the necessary pieces for downstream analysis. The next tutorials utilizes the packages Phyloseq and the following, Vegan, for downstream analysis of our data. 
 
+Make sure you save your environment for future work. You wouldnt want to have to re-run this entire pipeline everytime you wished to examine your data. 
 
 Citations and Resources:
 1: https://www.r-project.org/ 
